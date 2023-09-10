@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public class Main {
     public static void main(String[] args) {
-        var userDao = new UserDao();
+        var userDao = UserDao.getInstance();
 //        var user = userDao.findById(2L);
 //        User userUpdate = user.get();
 //        userUpdate.setName("Anonimus");
@@ -25,7 +25,7 @@ public class Main {
 
     private static User createUser() {
         return User.builder()
-                .name("Vova33")
+                .name("dsad")
                 .firstName("Alexeevich33")
                 .lastName("Alexeev33")
                 .balance(1223.5F)

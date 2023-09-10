@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
+@UtilityClass
 public final class ConnectionManager {
 
     private static final String PASSWORD_KEY = "db.password";
@@ -25,9 +26,6 @@ public final class ConnectionManager {
     static {
         loadDriver();
         initConnectionPool();
-    }
-
-    private ConnectionManager() {
     }
 
     private static void initConnectionPool() {
@@ -49,9 +47,7 @@ public final class ConnectionManager {
 
     @SneakyThrows
     public static Connection get() {
-        Connection connection = pool.take();
-        connection.setSchema("clever_bank");
-        return connection;
+        return pool.take();
     }
 
     @SneakyThrows

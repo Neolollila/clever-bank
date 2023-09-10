@@ -1,35 +1,18 @@
-package com.devmandrik.service;
+package com.devmandrik.integration.dao;
 
 import com.devmandrik.dao.UserDao;
 import com.devmandrik.entity.User;
-import com.devmandrik.util.ConnectionManager;
-import lombok.SneakyThrows;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import com.devmandrik.integration.IntegrationTestBase;
 import org.junit.jupiter.api.Test;
 
-import java.sql.Connection;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 
-class UserServiceTest {
+class UserDaoIT extends IntegrationTestBase {
 
-    private static UserDao userDao;
-
-    @BeforeAll
-    @SneakyThrows
-    static void init() {
-        Connection conn = ConnectionManager.get();
-        conn.setAutoCommit(false);
-        userDao = new UserDao(conn);
-    }
-
-    @AfterAll
-    @SneakyThrows
-    static void teardown() {
-        Connection conn = ConnectionManager.get();
-        conn.setAutoCommit(true);
-    }
+    private static final UserDao userDao = UserDao.getInstance();
 
     @Test
     void delete() {
@@ -38,7 +21,7 @@ class UserServiceTest {
         System.out.println(savedUser);
         var delete = userDao.delete(savedUser.getId());
 
-        assertTrue(delete);
+        assertThat(delete).isTrue();
     }
 
     @Test
@@ -47,7 +30,7 @@ class UserServiceTest {
 
         var savedUser = userDao.save(createdUser);
 
-        assertEquals(createdUser.getName(), savedUser.getName());
+        assertThat(createdUser.getName()).isEqualTo(savedUser.getName());
     }
 
     @Test
@@ -57,9 +40,10 @@ class UserServiceTest {
 
         savedUser.setName("Vasiliii");
         userDao.update(savedUser);
-        var findUser = userDao.findById(savedUser.getId()).orElse(null);
+        Optional<User> findUser = userDao.findById(savedUser.getId());
 
-        assertEquals(findUser.getName(), "Vasiliii");
+        assertThat(findUser).isPresent();
+        assertThat(findUser.get().getName()).isEqualTo("Vasiliii");
     }
 
     @Test
@@ -67,9 +51,10 @@ class UserServiceTest {
         var createdUser = createUser("dummy4");
         var savedUser = userDao.save(createdUser);
 
-        var findUser = userDao.findById(savedUser.getId()).orElse(null);
+        var findUser = userDao.findById(savedUser.getId());
 
-        assertEquals(savedUser, findUser);
+        assertThat(findUser).isPresent();
+        assertThat(savedUser).isEqualTo(findUser.get());
     }
 
     @Test
@@ -81,9 +66,10 @@ class UserServiceTest {
 
         var users = userDao.findAll();
 
+        assertThat(users.size()).isEqualTo(2);
         assertAll(
-                () -> assertTrue(users.contains(savedUser1)),
-                () -> assertTrue(users.contains(savedUser2))
+                () -> assertThat(users).contains(savedUser1),
+                () -> assertThat(users).contains(savedUser2)
         );
     }
 

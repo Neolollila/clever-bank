@@ -5,8 +5,6 @@ import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.UtilityClass;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.Properties;
 
 @UtilityClass
@@ -25,7 +23,8 @@ public class PropertiesUtil {
 
     @SneakyThrows
     private void loadProperties() {
-        var inputStream = new FileInputStream("src/main/resources/application.properties");
-        PROPERTIES.load(inputStream);
+        try (var inputStream = PropertiesUtil.class.getClassLoader().getResourceAsStream("application.properties")) {
+            PROPERTIES.load(inputStream);
+        }
     }
 }
