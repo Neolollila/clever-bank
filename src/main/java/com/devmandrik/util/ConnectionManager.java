@@ -47,41 +47,32 @@ public final class ConnectionManager {
         }
     }
 
+    @SneakyThrows
     public static Connection get() {
-        try {
-            return pool.take();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        Connection connection = pool.take();
+        connection.setSchema("clever_bank");
+        return connection;
     }
 
+    @SneakyThrows
     private static Connection open() {
-        try {
-            return DriverManager.getConnection(
-                    PropertiesUtil.get(URL_KEY),
-                    PropertiesUtil.get(USERNAME_KEY),
-                    PropertiesUtil.get(PASSWORD_KEY)
-            );
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        return DriverManager.getConnection(
+                PropertiesUtil.get(URL_KEY),
+                PropertiesUtil.get(USERNAME_KEY),
+                PropertiesUtil.get(PASSWORD_KEY)
+        );
+
     }
 
+    @SneakyThrows
     private static void loadDriver() {
-        try {
-            Class.forName("org.postgresql.Driver");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        Class.forName("org.postgresql.Driver");
     }
 
+    @SneakyThrows
     public static void closePool() {
-        try {
-            for (Connection sourceConnection : sourceConnections) {
-                sourceConnection.close();
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        for (Connection sourceConnection : sourceConnections) {
+            sourceConnection.close();
         }
     }
 }

@@ -10,8 +10,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@NoArgsConstructor
 public class UserDao implements Dao<Long, User> {
+
+    private final Connection connection;
+
+    public UserDao() {
+        connection = ConnectionManager.get();
+    }
+
+    public UserDao(Connection conn) {
+        connection = conn;
+    }
 
     private static final UserDao INSTANCE = new UserDao();
 
@@ -48,7 +57,6 @@ public class UserDao implements Dao<Long, User> {
     @Override
     @SneakyThrows
     public boolean delete(Long id) {
-        var connection = ConnectionManager.get();
         var preparedStatement = connection.prepareStatement(DELETE_SQL);
         preparedStatement.setLong(1, id);
 
@@ -58,7 +66,6 @@ public class UserDao implements Dao<Long, User> {
     @Override
     @SneakyThrows
     public User save(User user) {
-        var connection = ConnectionManager.get();
         var preparedStatement = connection.prepareStatement(SAVE_SQL, Statement.RETURN_GENERATED_KEYS);
         preparedStatement.setString(1, user.getName());
         preparedStatement.setString(2, user.getFirstName());
@@ -77,7 +84,6 @@ public class UserDao implements Dao<Long, User> {
     @Override
     @SneakyThrows
     public void update(User user) {
-        var connection = ConnectionManager.get();
         var preparedStatement = connection.prepareStatement(UPDATE_SQL);
         preparedStatement.setString(1, user.getName());
         preparedStatement.setString(2, user.getFirstName());
@@ -91,7 +97,6 @@ public class UserDao implements Dao<Long, User> {
     @Override
     @SneakyThrows
     public Optional<User> findById(Long id) {
-        var connection = ConnectionManager.get();
         var preparedStatement = connection.prepareStatement(FIND_BY_ID_SQL);
         preparedStatement.setLong(1, id);
 
@@ -107,7 +112,6 @@ public class UserDao implements Dao<Long, User> {
     @Override
     @SneakyThrows
     public List<User> findAll() {
-        var connection = ConnectionManager.get();
         var preparedStatement = connection.prepareStatement(FIND_ALL_SQL);
 
         var resultSet = preparedStatement.executeQuery();

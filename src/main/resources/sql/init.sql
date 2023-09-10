@@ -1,6 +1,6 @@
 CREATE SCHEMA clever_bank;
 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY ,
     name VARCHAR(64) NOT NULL UNIQUE ,
     first_name VARCHAR(64) ,
@@ -8,12 +8,12 @@ CREATE TABLE users (
     balance FLOAT
 );
 
-CREATE TABLE bank(
+CREATE TABLE IF NOT EXISTS bank(
     id SERIAL PRIMARY KEY ,
     name VARCHAR(64) NOT NULL UNIQUE
 );
 
-CREATE TABLE transaction(
+CREATE TABLE IF NOT EXISTS transaction(
     id SERIAL PRIMARY KEY ,
     created_at TIMESTAMP ,
     transaction_type VARCHAR(64) ,
@@ -24,7 +24,7 @@ CREATE TABLE transaction(
     user_id INT REFERENCES users (id)
 );
 
-CREATE TABLE account(
+CREATE TABLE IF NOT EXISTS account(
     id SERIAL PRIMARY KEY ,
     created_at TIMESTAMP ,
     sum FLOAT ,
