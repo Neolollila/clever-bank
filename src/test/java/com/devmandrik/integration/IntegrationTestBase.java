@@ -9,10 +9,10 @@ import java.sql.SQLException;
 public class IntegrationTestBase {
 
     private static final String CLEAN_SQL = """
-            DELETE FROM users;
-            DELETE FROM bank;
             DELETE FROM account;
             DELETE FROM transaction;
+            DELETE FROM users;
+            DELETE FROM bank;
             """;
     private static final String CREATE_SQL = """
             CREATE TABLE IF NOT EXISTS users (
@@ -33,17 +33,17 @@ public class IntegrationTestBase {
                 transaction_type VARCHAR(64) ,
                 currency VARCHAR(8) ,
                 sum FLOAT ,
-                fromBank_id INT REFERENCES bank (id)  ,
-                toBank_id INT REFERENCES bank (id)  ,
-                user_id INT REFERENCES users (id)
+                fromBank_id INT REFERENCES bank (id) ON DELETE CASCADE ,
+                toBank_id INT REFERENCES bank (id)  ON DELETE CASCADE,
+                user_id INT REFERENCES users (id) ON DELETE CASCADE
             );
             
             CREATE TABLE IF NOT EXISTS account(
                 id SERIAL PRIMARY KEY ,
                 created_at TIMESTAMP ,
                 sum FLOAT ,
-                user_id INT REFERENCES users (id) ,
-                Bank_id INT REFERENCES bank (id)
+                user_id INT REFERENCES users (id) ON DELETE CASCADE,
+                Bank_id INT REFERENCES bank (id) ON DELETE CASCADE
             );
             
             CREATE TABLE IF NOT EXISTS users_bank

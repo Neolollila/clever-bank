@@ -5,13 +5,14 @@ import com.devmandrik.entity.User;
 import com.devmandrik.integration.IntegrationTestBase;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Optional;
 
+import static com.devmandrik.util.ConstantAndMethodUtil.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.assertj.core.api.Assertions.*;
 
 class UserDaoIT extends IntegrationTestBase {
-
     private static final UserDao userDao = UserDao.getInstance();
 
     @Test
@@ -30,7 +31,7 @@ class UserDaoIT extends IntegrationTestBase {
 
         var savedUser = userDao.save(createdUser);
 
-        assertThat(createdUser.getName()).isEqualTo(savedUser.getName());
+        assertNotNull(createdUser.getId());
     }
 
     @Test
@@ -38,12 +39,12 @@ class UserDaoIT extends IntegrationTestBase {
         var createdUser = createUser("dummy3");
         var savedUser = userDao.save(createdUser);
 
-        savedUser.setName("Vasiliii");
+        savedUser.setName(ALEX);
         userDao.update(savedUser);
         Optional<User> findUser = userDao.findById(savedUser.getId());
 
         assertThat(findUser).isPresent();
-        assertThat(findUser.get().getName()).isEqualTo("Vasiliii");
+        assertThat(findUser.get().getName()).isEqualTo(ALEX);
     }
 
     @Test
@@ -66,19 +67,10 @@ class UserDaoIT extends IntegrationTestBase {
 
         var users = userDao.findAll();
 
-        assertThat(users.size()).isEqualTo(2);
-        assertAll(
-                () -> assertThat(users).contains(savedUser1),
-                () -> assertThat(users).contains(savedUser2)
-        );
-    }
-
-    private User createUser(String name) {
-        return User.builder()
-                .name(name)
-                .firstName("Alexeevich33")
-                .lastName("Alexeev33")
-                .balance(1223.5F)
-                .build();
+        List<Long> ids = users.stream()
+                .map(User::getId)
+                .toList();
+        assertThat(users).hasSize(2);
+        assertThat(ids).contains(savedUser1.getId(), savedUser2.getId());
     }
 }
