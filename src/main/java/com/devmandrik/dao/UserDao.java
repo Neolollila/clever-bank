@@ -10,9 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@NoArgsConstructor
-public class UserDao implements Dao<Long, User> {
+import static lombok.AccessLevel.PRIVATE;
 
+@NoArgsConstructor(access = PRIVATE)
+public class UserDao implements Dao<Long, User> {
     private static final UserDao INSTANCE = new UserDao();
 
     private static final String SAVE_SQL = """
@@ -48,75 +49,79 @@ public class UserDao implements Dao<Long, User> {
     @Override
     @SneakyThrows
     public boolean delete(Long id) {
-        var connection = ConnectionManager.get();
-        var preparedStatement = connection.prepareStatement(DELETE_SQL);
-        preparedStatement.setLong(1, id);
+        try (var connection = ConnectionManager.get();
+             var preparedStatement = connection.prepareStatement(DELETE_SQL)) {
+            preparedStatement.setLong(1, id);
 
-        return preparedStatement.executeUpdate() > 0;
+            return preparedStatement.executeUpdate() > 0;
+        }
     }
 
     @Override
     @SneakyThrows
     public User save(User user) {
-        var connection = ConnectionManager.get();
-        var preparedStatement = connection.prepareStatement(SAVE_SQL, Statement.RETURN_GENERATED_KEYS);
-        preparedStatement.setString(1, user.getName());
-        preparedStatement.setString(2, user.getFirstName());
-        preparedStatement.setString(3, user.getLastName());
-        preparedStatement.setFloat(4, user.getBalance());
+        try (var connection = ConnectionManager.get();
+            var preparedStatement = connection.prepareStatement(SAVE_SQL, Statement.RETURN_GENERATED_KEYS)) {
+            preparedStatement.setString(1, user.getName());
+            preparedStatement.setString(2, user.getFirstName());
+            preparedStatement.setString(3, user.getLastName());
+            preparedStatement.setFloat(4, user.getBalance());
 
-        preparedStatement.executeUpdate();
+            preparedStatement.executeUpdate();
 
-        var generatedKeys = preparedStatement.getGeneratedKeys();
-        if (generatedKeys.next()) {
-            user.setId(generatedKeys.getLong("id"));
+            var generatedKeys = preparedStatement.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                user.setId(generatedKeys.getLong("id"));
+            }
+            return user;
         }
-        return user;
     }
 
     @Override
     @SneakyThrows
     public void update(User user) {
-        var connection = ConnectionManager.get();
-        var preparedStatement = connection.prepareStatement(UPDATE_SQL);
-        preparedStatement.setString(1, user.getName());
-        preparedStatement.setString(2, user.getFirstName());
-        preparedStatement.setString(3, user.getLastName());
-        preparedStatement.setFloat(4, user.getBalance());
-        preparedStatement.setLong(5, user.getId());
+        try (var connection = ConnectionManager.get();
+            var preparedStatement = connection.prepareStatement(UPDATE_SQL)) {
+            preparedStatement.setString(1, user.getName());
+            preparedStatement.setString(2, user.getFirstName());
+            preparedStatement.setString(3, user.getLastName());
+            preparedStatement.setFloat(4, user.getBalance());
+            preparedStatement.setLong(5, user.getId());
 
-        preparedStatement.executeUpdate();
+            preparedStatement.executeUpdate();
+        }
     }
 
     @Override
     @SneakyThrows
     public Optional<User> findById(Long id) {
-        var connection = ConnectionManager.get();
-        var preparedStatement = connection.prepareStatement(FIND_BY_ID_SQL);
-        preparedStatement.setLong(1, id);
+        try (var connection = ConnectionManager.get();
+            var preparedStatement = connection.prepareStatement(FIND_BY_ID_SQL)) {
+            preparedStatement.setLong(1, id);
 
-        var resultSet = preparedStatement.executeQuery();
-        User user = null;
-        if (resultSet.next()) {
-            user = buildUser(resultSet);
+            var resultSet = preparedStatement.executeQuery();
+            User user = null;
+            if (resultSet.next()) {
+                user = buildUser(resultSet);
+            }
+
+            return Optional.ofNullable(user);
         }
-
-        return Optional.ofNullable(user);
     }
 
     @Override
     @SneakyThrows
     public List<User> findAll() {
-        var connection = ConnectionManager.get();
-        var preparedStatement = connection.prepareStatement(FIND_ALL_SQL);
+        try (var connection = ConnectionManager.get();
+             var preparedStatement = connection.prepareStatement(FIND_ALL_SQL)) {
+            var resultSet = preparedStatement.executeQuery();
+            List<User> users = new ArrayList<>();
+            while (resultSet.next()) {
+                users.add(buildUser(resultSet));
+            }
 
-        var resultSet = preparedStatement.executeQuery();
-        List<User> users = new ArrayList<>();
-        while (resultSet.next()) {
-            users.add(buildUser(resultSet));
+            return users;
         }
-
-        return users;
     }
 
     private User buildUser(ResultSet resultSet) throws SQLException {

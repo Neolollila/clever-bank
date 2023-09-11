@@ -48,69 +48,72 @@ public class BankDao implements Dao<Long, Bank>{
     @Override
     @SneakyThrows
     public boolean delete(Long id) {
-        var connection = ConnectionManager.get();
-        var preparedStatement = connection.prepareStatement(DELETE_SQL);
-        preparedStatement.setLong(1, id);
+        try (var connection = ConnectionManager.get();
+            var preparedStatement = connection.prepareStatement(DELETE_SQL)) {
+            preparedStatement.setLong(1, id);
 
-        return preparedStatement.executeUpdate() > 0;
+            return preparedStatement.executeUpdate() > 0;
+        }
     }
 
     @Override
     @SneakyThrows
     public Bank save(Bank bank) {
-        var connection = ConnectionManager.get();
-        var preparedStatement = connection.prepareStatement(SAVE_SQL, Statement.RETURN_GENERATED_KEYS);
-        preparedStatement.setString(1, bank.getName());
+        try (var connection = ConnectionManager.get();
+             var preparedStatement = connection.prepareStatement(SAVE_SQL, Statement.RETURN_GENERATED_KEYS)) {
+            preparedStatement.setString(1, bank.getName());
+            preparedStatement.executeUpdate();
 
-        preparedStatement.executeUpdate();
-
-        var generatedKeys = preparedStatement.getGeneratedKeys();
-        if (generatedKeys.next()) {
-            bank.setId(generatedKeys.getLong("id"));
+            var generatedKeys = preparedStatement.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                bank.setId(generatedKeys.getLong("id"));
+            }
+            return bank;
         }
-        return bank;
     }
 
     @Override
     @SneakyThrows
     public void update(Bank bank) {
-        var connection = ConnectionManager.get();
-        var preparedStatement = connection.prepareStatement(UPDATE_SQL);
-        preparedStatement.setString(1, bank.getName());
-        preparedStatement.setLong(2, bank.getId());
+        try (var connection = ConnectionManager.get();
+            var preparedStatement = connection.prepareStatement(UPDATE_SQL);) {
+            preparedStatement.setString(1, bank.getName());
+            preparedStatement.setLong(2, bank.getId());
 
-        preparedStatement.executeUpdate();
+            preparedStatement.executeUpdate();
+        }
     }
 
     @Override
     @SneakyThrows
     public Optional<Bank> findById(Long id) {
-        var connection = ConnectionManager.get();
-        var preparedStatement = connection.prepareStatement(FIND_BY_ID_SQL);
-        preparedStatement.setLong(1, id);
+        try (var connection = ConnectionManager.get();
+            var preparedStatement = connection.prepareStatement(FIND_BY_ID_SQL)) {
+            preparedStatement.setLong(1, id);
 
-        var resultSet = preparedStatement.executeQuery();
-        Bank bank = null;
-        if (resultSet.next()) {
-            bank = buildBank(resultSet);
+            var resultSet = preparedStatement.executeQuery();
+            Bank bank = null;
+            if (resultSet.next()) {
+                bank = buildBank(resultSet);
+            }
+
+            return Optional.ofNullable(bank);
         }
-
-        return Optional.ofNullable(bank);
     }
 
     @Override
     @SneakyThrows
     public List<Bank> findAll() {
-        var connection = ConnectionManager.get();
-        var preparedStatement = connection.prepareStatement(FIND_ALL_SQL);
+        try (var connection = ConnectionManager.get();
+            var preparedStatement = connection.prepareStatement(FIND_ALL_SQL)) {
+            var resultSet = preparedStatement.executeQuery();
+            List<Bank> banks = new ArrayList<>();
+            while (resultSet.next()) {
+                banks.add(buildBank(resultSet));
+            }
 
-        var resultSet = preparedStatement.executeQuery();
-        List<Bank> banks = new ArrayList<>();
-        while (resultSet.next()) {
-            banks.add(buildBank(resultSet));
+            return banks;
         }
-
-        return banks;
     }
 
     private Bank buildBank(ResultSet resultSet) throws SQLException {

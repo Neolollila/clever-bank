@@ -30,7 +30,7 @@ public class TransactionDao implements Dao<Long, Transaction>{
 
     private static final String UPDATE_SQL = """
             UPDATE transaction
-            SET transaction_type = ?, currency = ?, sum = ?, frombank_id = ?, tobank_id = ?, user_id = ?
+            SET created_at = ?, transaction_type = ?, currency = ?, sum = ?, frombank_id = ?, tobank_id = ?, user_id = ?
             WHERE id = ?
             """;
     private static final String FIND_ALL_SQL = """
@@ -53,64 +53,71 @@ public class TransactionDao implements Dao<Long, Transaction>{
     @Override
     @SneakyThrows
     public boolean delete(Long id) {
-        var connection = ConnectionManager.get();
-        var preparedStatement = connection.prepareStatement(DELETE_SQL);
-        preparedStatement.setLong(1, id);
+        try (var connection = ConnectionManager.get();
+            var preparedStatement = connection.prepareStatement(DELETE_SQL)) {
+            preparedStatement.setLong(1, id);
 
-        return preparedStatement.executeUpdate() > 0;
+            return preparedStatement.executeUpdate() > 0;
+        }
     }
 
     @Override
     @SneakyThrows
     public Transaction save(Transaction transaction) {
-        var connection = ConnectionManager.get();
-        var preparedStatement = connection.prepareStatement(SAVE_SQL, Statement.RETURN_GENERATED_KEYS);
-        prepareStatementForTransaction(transaction, preparedStatement);
-
-        var generatedKeys = preparedStatement.getGeneratedKeys();
-        if (generatedKeys.next()) {
-            transaction.setId(generatedKeys.getLong("id"));
+        try (var connection = ConnectionManager.get();
+            var preparedStatement = connection.prepareStatement(SAVE_SQL, Statement.RETURN_GENERATED_KEYS)) {
+            prepareStatementForTransaction(transaction, preparedStatement);
+            preparedStatement.executeUpdate();
+            var generatedKeys = preparedStatement.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                transaction.setId(generatedKeys.getLong("id"));
+            }
+            return transaction;
         }
-        return transaction;
     }
 
     @Override
     @SneakyThrows
     public void update(Transaction transaction) {
-        var connection = ConnectionManager.get();
-        var preparedStatement = connection.prepareStatement(UPDATE_SQL);
-        prepareStatementForTransaction(transaction, preparedStatement);
+        try (var connection = ConnectionManager.get();
+            var preparedStatement = connection.prepareStatement(UPDATE_SQL)) {
+            prepareStatementForTransaction(transaction, preparedStatement);
+            preparedStatement.setLong(8, transaction.getId());
+
+            preparedStatement.executeUpdate();
+        }
     }
 
     @Override
     @SneakyThrows
     public Optional<Transaction> findById(Long id) {
-        var connection = ConnectionManager.get();
-        var preparedStatement = connection.prepareStatement(FIND_BY_ID_SQL);
-        preparedStatement.setLong(1, id);
+        try (var connection = ConnectionManager.get();
+             var preparedStatement = connection.prepareStatement(FIND_BY_ID_SQL)) {
+            preparedStatement.setLong(1, id);
 
-        var resultSet = preparedStatement.executeQuery();
-        Transaction transaction = null;
-        if (resultSet.next()) {
-            transaction = buildTransaction(resultSet);
+            var resultSet = preparedStatement.executeQuery();
+            Transaction transaction = null;
+            if (resultSet.next()) {
+                transaction = buildTransaction(resultSet);
+            }
+
+            return Optional.ofNullable(transaction);
         }
-
-        return Optional.ofNullable(transaction);
     }
 
     @Override
     @SneakyThrows
     public List<Transaction> findAll() {
-        var connection = ConnectionManager.get();
-        var preparedStatement = connection.prepareStatement(FIND_ALL_SQL);
+        try (var connection = ConnectionManager.get();
+             var preparedStatement = connection.prepareStatement(FIND_ALL_SQL)) {
+            var resultSet = preparedStatement.executeQuery();
+            List<Transaction> transactions = new ArrayList<>();
+            while (resultSet.next()) {
+                transactions.add(buildTransaction(resultSet));
+            }
 
-        var resultSet = preparedStatement.executeQuery();
-        List<Transaction> transactions = new ArrayList<>();
-        while (resultSet.next()) {
-            transactions.add(buildTransaction(resultSet));
+            return transactions;
         }
-
-        return transactions;
     }
 
     private void prepareStatementForTransaction(Transaction transaction, PreparedStatement preparedStatement) throws SQLException {
@@ -121,8 +128,6 @@ public class TransactionDao implements Dao<Long, Transaction>{
         preparedStatement.setLong(5, transaction.getFromBank().getId());
         preparedStatement.setLong(6, transaction.getToBank().getId());
         preparedStatement.setLong(7, transaction.getUser().getId());
-
-        preparedStatement.executeUpdate();
     }
 
     private Transaction buildTransaction(ResultSet resultSet) throws SQLException {

@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
+@UtilityClass
 public final class ConnectionManager {
 
     private static final String PASSWORD_KEY = "db.password";
@@ -25,9 +26,6 @@ public final class ConnectionManager {
     static {
         loadDriver();
         initConnectionPool();
-    }
-
-    private ConnectionManager() {
     }
 
     private static void initConnectionPool() {
@@ -47,41 +45,30 @@ public final class ConnectionManager {
         }
     }
 
+    @SneakyThrows
     public static Connection get() {
-        try {
-            return pool.take();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        return pool.take();
     }
 
+    @SneakyThrows
     private static Connection open() {
-        try {
-            return DriverManager.getConnection(
-                    PropertiesUtil.get(URL_KEY),
-                    PropertiesUtil.get(USERNAME_KEY),
-                    PropertiesUtil.get(PASSWORD_KEY)
-            );
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        return DriverManager.getConnection(
+                PropertiesUtil.get(URL_KEY),
+                PropertiesUtil.get(USERNAME_KEY),
+                PropertiesUtil.get(PASSWORD_KEY)
+        );
+
     }
 
+    @SneakyThrows
     private static void loadDriver() {
-        try {
-            Class.forName("org.postgresql.Driver");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        Class.forName("org.postgresql.Driver");
     }
 
+    @SneakyThrows
     public static void closePool() {
-        try {
-            for (Connection sourceConnection : sourceConnections) {
-                sourceConnection.close();
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        for (Connection sourceConnection : sourceConnections) {
+            sourceConnection.close();
         }
     }
 }
