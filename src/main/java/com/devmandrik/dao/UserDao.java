@@ -17,20 +17,19 @@ public class UserDao implements Dao<Long, User> {
     private static final UserDao INSTANCE = new UserDao();
 
     private static final String SAVE_SQL = """
-            INSERT INTO users (name, first_name, last_name, balance)
-            VALUES (?, ?, ?, ?);
+            INSERT INTO users (name, first_name, last_name)
+            VALUES (?, ?, ?);
             """;
 
     private static final String UPDATE_SQL = """
             UPDATE users
             SET name = ?,
                 first_name = ?,
-                last_name = ?,
-                balance = ?
+                last_name = ?
             WHERE id = ?
             """;
     private static final String FIND_ALL_SQL = """
-            SELECT id, name, first_name, last_name, balance
+            SELECT id, name, first_name, last_name
             FROM users
             """;
     private static final String FIND_BY_ID_SQL = FIND_ALL_SQL + """
@@ -65,7 +64,6 @@ public class UserDao implements Dao<Long, User> {
             preparedStatement.setString(1, user.getName());
             preparedStatement.setString(2, user.getFirstName());
             preparedStatement.setString(3, user.getLastName());
-            preparedStatement.setFloat(4, user.getBalance());
 
             preparedStatement.executeUpdate();
 
@@ -85,8 +83,7 @@ public class UserDao implements Dao<Long, User> {
             preparedStatement.setString(1, user.getName());
             preparedStatement.setString(2, user.getFirstName());
             preparedStatement.setString(3, user.getLastName());
-            preparedStatement.setFloat(4, user.getBalance());
-            preparedStatement.setLong(5, user.getId());
+            preparedStatement.setLong(4, user.getId());
 
             preparedStatement.executeUpdate();
         }
@@ -130,7 +127,6 @@ public class UserDao implements Dao<Long, User> {
                 .name(resultSet.getString("name"))
                 .firstName(resultSet.getString("first_name"))
                 .lastName(resultSet.getString("last_name"))
-                .balance(resultSet.getFloat("balance"))
                 .build();
     }
 }

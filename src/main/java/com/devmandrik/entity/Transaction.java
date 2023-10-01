@@ -1,5 +1,7 @@
 package com.devmandrik.entity;
 
+import com.devmandrik.entity.enums.CurrencyType;
+import com.devmandrik.entity.enums.TransactionType;
 import lombok.Builder;
 import lombok.Data;
 

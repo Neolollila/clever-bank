@@ -1,9 +1,8 @@
 package com.devmandrik.dao;
 
-import com.devmandrik.entity.Bank;
-import com.devmandrik.entity.CurrencyType;
+import com.devmandrik.entity.enums.CurrencyType;
 import com.devmandrik.entity.Transaction;
-import com.devmandrik.entity.TransactionType;
+import com.devmandrik.entity.enums.TransactionType;
 import com.devmandrik.util.ConnectionManager;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
