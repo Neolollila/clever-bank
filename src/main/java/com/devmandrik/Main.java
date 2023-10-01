@@ -1,13 +1,12 @@
 package com.devmandrik;
 
-import com.devmandrik.dao.UserDao;
-import com.devmandrik.entity.User;
-
-import java.util.List;
-import java.util.Optional;
+import com.devmandrik.service.ReceiptService;
 
 public class Main {
+    private static final ReceiptService receiptService= new ReceiptService();
     public static void main(String[] args) {
-
+//        receiptService.depositReceipt(1L, 1000F);
+//        receiptService.withdrawReceipt(1L, 1F);
+        receiptService.transferReceipt(1L, 39L, 1F);
     }
 }

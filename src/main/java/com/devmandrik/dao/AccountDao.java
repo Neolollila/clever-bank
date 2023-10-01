@@ -3,6 +3,7 @@ package com.devmandrik.dao;
 import com.devmandrik.entity.Account;
 import com.devmandrik.entity.Bank;
 import com.devmandrik.entity.User;
+import com.devmandrik.entity.enums.CurrencyType;
 import com.devmandrik.util.ConnectionManager;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
@@ -23,17 +24,17 @@ public class AccountDao implements Dao<Long, Account>{
     private final BankDao bankDao = BankDao.getInstance();
 
     private static final String SAVE_SQL = """
-            INSERT INTO account (created_at, sum, user_id, bank_id)
-            VALUES (?, ?, ?, ?);
+            INSERT INTO account (created_at, sum, currency, user_id, bank_id)
+            VALUES (?, ?, ?, ?, ?);
             """;
 
     private static final String UPDATE_SQL = """
             UPDATE account
-            SET created_at = ?, sum = ?, user_id = ?, bank_id = ?
+            SET created_at = ?, sum = ?, currency = ?, user_id = ?, bank_id = ?
             WHERE id = ?
             """;
     private static final String FIND_ALL_SQL = """
-            SELECT id, created_at, sum, user_id, bank_id
+            SELECT id, created_at, sum, currency, user_id, bank_id
             FROM account
             """;
     private static final String FIND_BY_ID_SQL = FIND_ALL_SQL + """
@@ -68,8 +69,9 @@ public class AccountDao implements Dao<Long, Account>{
 
             preparedStatement.setTimestamp(1, account.getCreatedAt());
             preparedStatement.setFloat(2, account.getSum());
-            preparedStatement.setLong(3, account.getUser().getId());
-            preparedStatement.setLong(4, account.getBank().getId());
+            preparedStatement.setString(3, account.getCurrency().toString());
+            preparedStatement.setLong(4, account.getUser().getId());
+            preparedStatement.setLong(5, account.getBank().getId());
 
             preparedStatement.executeUpdate();
 
@@ -89,9 +91,10 @@ public class AccountDao implements Dao<Long, Account>{
 
             preparedStatement.setTimestamp(1, account.getCreatedAt());
             preparedStatement.setFloat(2, account.getSum());
-            preparedStatement.setLong(3, account.getUser().getId());
-            preparedStatement.setLong(4, account.getBank().getId());
-            preparedStatement.setLong(5, account.getId());
+            preparedStatement.setString(3, account.getCurrency().toString());
+            preparedStatement.setLong(4, account.getUser().getId());
+            preparedStatement.setLong(5, account.getBank().getId());
+            preparedStatement.setLong(6, account.getId());
 
             preparedStatement.executeUpdate();
         }
@@ -136,6 +139,7 @@ public class AccountDao implements Dao<Long, Account>{
                 .id(resultSet.getLong("id"))
                 .createdAt(resultSet.getTimestamp("created_at"))
                 .sum(resultSet.getFloat("sum"))
+                .currency(CurrencyType.valueOf(resultSet.getString("currency")))
                 .user(userDao.findById(resultSet.getLong("user_id")).orElse(null))
                 .bank(bankDao.findById(resultSet.getLong("bank_id")).orElse(null))
                 .build();

@@ -1,6 +1,8 @@
 package com.devmandrik.util;
 
 import com.devmandrik.entity.*;
+import com.devmandrik.entity.enums.CurrencyType;
+import com.devmandrik.entity.enums.TransactionType;
 import lombok.experimental.UtilityClass;
 
 import java.sql.Timestamp;
@@ -17,7 +19,6 @@ public class ConstantAndMethodUtil {
                 .name(name)
                 .firstName(ALEX)
                 .lastName(ALEX)
-                .balance(1223.5F)
                 .build();
     }
 
